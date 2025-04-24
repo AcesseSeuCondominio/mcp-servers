@@ -1,0 +1,21 @@
+{
+    "name": "mcp-servers",
+    "private": false,
+    "version": "0.0.1",
+    "description": "Acesse Seu Condominio MCP servers",
+    "license": "MIT",
+    "author": "Acesse Seu Condominio, PBC (https://acesseseucondominio.com)",
+    "homepage": "https://acesseseucondominio.com",
+    "bugs": "https://github.com/acesseseucondominio/mcp-servers/issues",
+    "type": "module",
+    "workspaces": [
+      "src/*"
+    ],
+    "files": [],
+    "scripts": {
+      "build": "npm run build --workspaces",
+      "watch": "npm run watch --workspaces",
+      "publish-all": "npm publish --workspaces --access public",
+      "link-all": "npm link --workspaces"
+    }
+  }

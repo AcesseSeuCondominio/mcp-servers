@@ -1,0 +1,31 @@
+{
+  "name": "@acesseseucondominio/github-pr",
+  "version": "0.0.3",
+  "description": "MCP server for GitHub PR search and analysis",
+  "license": "MIT",
+  "author": "acesseseucondominio",
+  "homepage": "https://github.com/org/acesseseucondominio/github-pr",
+  "bugs": "https://github.com/org/acesseseucondominio/github-pr/issues",
+  "type": "module",
+  "bin": {
+    "github-pr": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "watch": "tsc --watch"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.8.0",
+    "openai": "^4.26.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+} 
