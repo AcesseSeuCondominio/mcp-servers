@@ -1,0 +1,35 @@
+{
+  "name": "@acesseseucondominio/jira-task-summarizer",
+  "version": "0.0.1",
+  "description": "MCP server para resumir e analisar tarefas do Jira",
+  "license": "MIT",
+  "author": "acesseseucondominio",
+  "homepage": "https://github.com/org/acesseseucondominio/jira-task-summarizer",
+  "bugs": "https://github.com/org/acesseseucondominio/jira-task-summarizer/issues",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "jira-task-summarizer": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "watch": "tsc --watch"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.8.0",
+    "jira-client": "^8.2.2",
+    "openai": "^4.26.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+} 

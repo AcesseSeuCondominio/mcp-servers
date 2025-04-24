@@ -1,0 +1,35 @@
+{
+  "name": "@acesseseucondominio/jira-sprint-summary",
+  "version": "0.0.7",
+  "description": "MCP server para resumir sprints e listar tarefas de usuários no Jira",
+  "license": "MIT",
+  "author": "acesseseucondominio",
+  "homepage": "https://github.com/acesseseucondominio/jira-sprint-summary",
+  "bugs": "https://github.com/acesseseucondominio/jira-sprint-summary/issues",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "jira-sprint-summary": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "watch": "tsc --watch"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.8.0",
+    "jira-client": "^8.2.2",
+    "openai": "^4.26.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+} 

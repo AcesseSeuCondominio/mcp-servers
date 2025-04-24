@@ -1,0 +1,32 @@
+{
+  "name": "@acesseseucondominio/github-reports",
+  "version": "0.0.1",
+  "description": "MCP for generating reports on GitHub organization activity",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "github-reports": "dist/index.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "watch": "tsc --watch"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.8.0",
+    "openai": "^4.26.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "nodemon": "^3.0.0",
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+} 

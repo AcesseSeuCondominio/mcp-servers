@@ -12,6 +12,7 @@ O MCP permite que assistentes de IA como o Claude interajam com ferramentas e se
 |----------|-----------|------------|
 | Brave Search | Pesquisa web usando a API Brave Search | [@acesseseucondominio/brave-search](https://www.npmjs.com/package/@acesseseucondominio/brave-search) |
 | GitHub PR | Integração com Pull Requests do GitHub | [@acesseseucondominio/github-pr](https://www.npmjs.com/package/@acesseseucondominio/github-pr) |
+| Jira Task Summarizer | Resumo e análise de tarefas do Jira | [@acesseseucondominio/jira-task-summarizer](https://www.npmjs.com/package/@acesseseucondominio/jira-task-summarizer) |
 
 ## Comandos
 
