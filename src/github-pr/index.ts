@@ -29,7 +29,7 @@ type AnalyzePullRequestParams = z.infer<typeof analyzePullRequestSchema>;
 // Criar instância do servidor MCP
 const mcpServer = new McpServer({
   name: "github-pr",
-  version: "0.0.3",
+  version: "0.0.4",
   capabilities: {
     resources: {},
     tools: {},
