@@ -29,7 +29,7 @@ type AnalyzePullRequestParams = z.infer<typeof analyzePullRequestSchema>;
 // Criar instância do servidor MCP
 const mcpServer = new McpServer({
   name: "github-pr",
-  version: "0.0.4",
+  version: "0.0.5",
   capabilities: {
     resources: {},
     tools: {},
@@ -183,29 +183,18 @@ class CodeAnalyzer {
       return `- **${file.filename}** (${file.status}, +${file.additions}/-${file.deletions} linhas)`
     }).join('\n');
     
-    // Construir trechos de código com referências de arquivo e linha
-    const codeSnippets = Object.entries(fileContents)
-      .map(([filename, content]) => {
-        // Dividir o conteúdo em linhas
-        const lines = content.split('\n');
-        
-        // Para arquivos grandes, incluir apenas as linhas mais relevantes
-        let relevantContent = content;
-        if (lines.length > 100) {
-          // Pegar os primeiros 30 linhas e os últimos 30 linhas
-          const firstPart = lines.slice(0, 30).join('\n');
-          const lastPart = lines.slice(-30).join('\n');
-          relevantContent = `${firstPart}\n\n... (${lines.length - 60} linhas omitidas) ...\n\n${lastPart}`;
-        }
-        
-        return `### Arquivo: ${filename}\n\n\`\`\`\n${relevantContent}\n\`\`\``;
+    // Construir trechos de código com as alterações específicas
+    const codeSnippets = files
+      .filter(file => file.patch)
+      .map(file => {
+        return `### Arquivo: ${file.filename}\n\n\`\`\`diff\n${file.patch}\n\`\`\``;
       })
       .join('\n\n');
     
     if (focus === "código") {
       promptContent = `
       Você é um especialista em análise técnica de código e um crítico rigoroso de qualidade de código.
-      Analise as alterações do seguinte Pull Request, fornecendo referências precisas de arquivos e linhas:
+      Analise as alterações do seguinte Pull Request:
       
       Título: ${prDetails.title}
       Descrição: ${prDetails.body || "Sem descrição"}
@@ -213,46 +202,46 @@ class CodeAnalyzer {
       Alterações de arquivos:
       ${filesSummary}
       
-      Conteúdo dos arquivos modificados:
+      Alterações específicas (diff):
       ${codeSnippets}
       
-      Seja extremamente crítico na análise, não deixe passar código "feio" ou mal estruturado. Analise os aspectos mais relevantes, considerando:
+      Seja extremamente crítico na análise, não deixe passar código "feio" ou mal estruturado. Analise apenas as alterações mostradas nos diffs, considerando:
       
       1. Legibilidade e qualidade do código:
          - Identifique código confuso, excessivamente complexo ou mal organizado
          - Critique variáveis mal nomeadas, funções muito longas ou difíceis de entender
          - Identifique estruturas de controle desnecessariamente complicadas
-         - Aponte exatamente o arquivo e linhas onde há problemas
+         - Aponte exatamente o arquivo onde há problemas
       
       2. Segurança:
          - Vulnerabilidades potenciais (injeção, XSS, problemas de autorização)
          - Manejo inadequado de dados sensíveis
-         - Cite exemplos específicos com referência a arquivo e linhas
+         - Cite exemplos específicos com referência ao arquivo
       
       3. Organização e estrutura:
          - Identifique responsabilidades mal definidas ou misturadas
          - Aponte problemas de acoplamento ou coesão
          - Sugira como o código deveria ser estruturado para melhor manutenção
-         - Cite arquivos e linhas específicos
+         - Cite arquivos específicos
       
       4. Performance:
          - Identifique gargalos potenciais ou operações ineficientes
          - Aponte loops desnecessários, operações redundantes ou algoritmos ineficientes
          - Sugira otimizações específicas
-         - Cite exemplos concretos com referência a arquivo e linhas
+         - Cite exemplos concretos com referência ao arquivo
       
       5. Sugestão final:
          - Apresente uma recomendação concreta para melhorar o código como um todo
          - Seja direto sobre o que precisa ser corrigido para tornar o código de melhor qualidade
       
-      Ao referenciar código, sempre use o formato "Arquivo: filename.ext (linhas X-Y)" para facilitar a localização.
+      Ao referenciar código, use apenas o nome do arquivo sem mencionar números de linha.
       Inclua apenas os trechos mais relevantes, evitando análises extensas de código secundário.
       Não mencione ou avalie a documentação técnica.
       `;
     } else if (focus === "regras de negócio") {
       promptContent = `
       Você é um especialista em análise de regras de negócio em código e um crítico rigoroso de implementações.
-      Analise as alterações do seguinte Pull Request, fornecendo referências precisas de arquivos e linhas:
+      Analise as alterações do seguinte Pull Request:
       
       Título: ${prDetails.title}
       Descrição: ${prDetails.body || "Sem descrição"}
@@ -260,47 +249,47 @@ class CodeAnalyzer {
       Alterações de arquivos:
       ${filesSummary}
       
-      Conteúdo dos arquivos modificados:
+      Alterações específicas (diff):
       ${codeSnippets}
       
-      Seja extremamente crítico na análise, não deixe passar implementações confusas ou mal estruturadas. Analise os aspectos mais relevantes, considerando:
+      Seja extremamente crítico na análise, não deixe passar implementações confusas ou mal estruturadas. Analise apenas as alterações mostradas nos diffs, considerando:
       
       1. Regras de negócio implementadas:
          - Identifique as principais regras de negócio adicionadas ou modificadas
          - Critique implementações confusas, excessivamente complexas ou que misturam responsabilidades
          - Aponte inconsistências ou lógica de negócio mal implementada
-         - Cite arquivos e linhas específicos onde estão os problemas
+         - Cite apenas os arquivos onde estão os problemas
       
       2. Fluxos de processos:
          - Critique fluxos de processo mal implementados ou difíceis de entender
          - Identifique falhas lógicas ou casos de borda não tratados
          - Aponte complexidade desnecessária ou falta de clareza
-         - Cite exemplos específicos com referência a arquivo e linhas
+         - Cite exemplos específicos com referência ao arquivo
       
       3. Validações e consistência:
          - Critique validações inadequadas, incompletas ou excessivas
          - Identifique inconsistências ou validações ausentes
          - Aponte como as validações deveriam ser implementadas
-         - Cite arquivos e linhas específicos
+         - Cite apenas os arquivos específicos
       
       4. Integração com banco de dados:
          - Critique operações de banco de dados mal implementadas ou ineficientes
          - Identifique problemas de integridade, performance ou manutenção
          - Sugira como as operações deveriam ser implementadas corretamente
-         - Cite exemplos concretos com referência a arquivo e linhas
+         - Cite exemplos concretos com referência ao arquivo
       
       5. Sugestão final:
          - Apresente uma recomendação direta para corrigir os problemas identificados
          - Seja específico sobre o que precisa ser melhorado para implementar corretamente as regras de negócio
       
-      Ao referenciar código, sempre use o formato "Arquivo: filename.ext (linhas X-Y)" para facilitar a localização.
+      Ao referenciar código, use apenas o nome do arquivo sem mencionar números de linha.
       Inclua apenas os trechos mais relevantes para as regras de negócio, evitando análises extensas de código secundário.
       Não mencione ou avalie a documentação técnica.
       `;
     } else {
       promptContent = `
       Você é um especialista em análise técnica e de negócios de código e um crítico rigoroso de qualidade.
-      Analise as alterações do seguinte Pull Request, fornecendo referências precisas de arquivos e linhas:
+      Analise as alterações do seguinte Pull Request:
       
       Título: ${prDetails.title}
       Descrição: ${prDetails.body || "Sem descrição"}
@@ -308,48 +297,48 @@ class CodeAnalyzer {
       Alterações de arquivos:
       ${filesSummary}
       
-      Conteúdo dos arquivos modificados:
+      Alterações específicas (diff):
       ${codeSnippets}
       
-      Seja extremamente crítico na análise, não deixe passar código "feio", ilegível ou mal implementado. Analise os aspectos mais relevantes, considerando:
+      Seja extremamente crítico na análise, não deixe passar código "feio", ilegível ou mal implementado. Analise apenas as alterações mostradas nos diffs, considerando:
       
       1. Legibilidade e qualidade do código:
          - Critique código confuso, excessivamente complexo ou mal organizado
          - Identifique variáveis mal nomeadas, funções muito longas ou difíceis de entender
          - Aponte estruturas de controle desnecessariamente complicadas
          - Identifique falta de consistência no estilo ou abordagem
-         - Aponte exatamente o arquivo e linhas onde há problemas
+         - Aponte exatamente o arquivo onde há problemas
       
       2. Regras de negócio:
          - Critique implementações de regras de negócio confusas ou mal estruturadas
          - Identifique inconsistências ou lógica de negócio mal implementada
          - Aponte responsabilidades misturadas ou mal definidas
-         - Cite arquivos e linhas específicos
+         - Cite apenas os arquivos específicos
       
       3. Segurança:
          - Identifique vulnerabilidades potenciais (injeção, XSS, problemas de autorização)
          - Critique manejo inadequado de dados sensíveis ou falhas de validação
          - Sugira como implementar corretamente aspectos de segurança
-         - Cite exemplos específicos com referência a arquivo e linhas
+         - Cite exemplos específicos com referência ao arquivo
       
       4. Estrutura e organização:
          - Critique organização confusa, responsabilidades mal definidas ou misturadas
          - Identifique problemas de acoplamento ou coesão
          - Sugira como o código deveria ser estruturado para melhor manutenção
-         - Cite arquivos e linhas específicos
+         - Cite apenas os arquivos específicos
       
       5. Performance:
          - Identifique gargalos potenciais, operações ineficientes ou problemas de banco de dados
          - Critique loops desnecessários, operações redundantes ou algoritmos ineficientes
          - Sugira otimizações específicas
-         - Cite exemplos concretos com referência a arquivo e linhas
+         - Cite exemplos concretos com referência ao arquivo
       
       6. Sugestão final:
          - Apresente uma recomendação direta e concreta para melhorar a PR como um todo
          - Seja específico sobre o que precisa ser corrigido para tornar o código de melhor qualidade
          - Se aplicável, sugira melhorias no código, nas regras de negócio, ou no banco de dados
       
-      Ao referenciar código, sempre use o formato "Arquivo: filename.ext (linhas X-Y)" para facilitar a localização.
+      Ao referenciar código, use apenas o nome do arquivo sem mencionar números de linha.
       Inclua apenas os trechos mais relevantes, evitando análises extensas de código secundário.
       Concentre sua análise nos aspectos mais importantes, seja no código ou nas regras de negócio implementadas.
       Não mencione ou avalie a documentação técnica.
@@ -362,7 +351,7 @@ class CodeAnalyzer {
       messages: [
         {
           role: "system",
-          content: "Você é um crítico rigoroso de código e implementações de negócio. Ao analisar PRs, seja direto e incisivo sobre problemas de qualidade, legibilidade e estrutura. Não deixe passar código 'feio' ou ilegível. Forneça referências específicas a arquivos e linhas. Seja preciso, objetivo e focado nos aspectos mais relevantes. Mantenha a análise concisa, destacando apenas os pontos críticos. Sempre termine com uma sugestão concreta para melhorar a PR como um todo. Não mencione ou avalie documentação técnica."
+          content: "Você é um crítico rigoroso de código e implementações de negócio. Ao analisar PRs, seja direto e incisivo sobre problemas de qualidade, legibilidade e estrutura. Não deixe passar código 'feio' ou ilegível. Forneça referências específicas a arquivos. Seja preciso, objetivo e focado nos aspectos mais relevantes. Mantenha a análise concisa, destacando apenas os pontos críticos. Sempre termine com uma sugestão concreta para melhorar a PR como um todo. Não mencione ou avalie documentação técnica. Não mencione números de linha, apenas arquivos."
         },
         {
           role: "user",
@@ -416,33 +405,11 @@ mcpServer.tool(
       // Limitar a quantidade de arquivos para análise
       const filesToAnalyze = files.slice(0, 10);
       
-      // Obter o conteúdo de cada arquivo
-      const fileContents: Record<string, string> = {};
-      
-      for (const file of filesToAnalyze) {
-        if (file.status !== "removed") {
-          try {
-            const content = await gitHubClient.getFileContent(
-              repo,
-              file.filename,
-              prDetails.head.sha
-            );
-            
-            if (content) {
-              fileContents[file.filename] = content;
-            }
-          } catch (fileError: unknown) {
-            const errorMessage = fileError instanceof Error ? fileError.message : String(fileError);
-            console.warn(`Não foi possível obter o conteúdo de ${file.filename}: ${errorMessage}`);
-          }
-        }
-      }
-      
-      // Analisar o PR
+      // Analisar o PR usando diretamente os arquivos com diffs
       const analysis = await codeAnalyzer.analyzePullRequest(
         prDetails,
         filesToAnalyze,
-        fileContents,
+        {}, // Não precisamos mais obter o conteúdo completo dos arquivos
         focus
       );
       
@@ -494,33 +461,11 @@ mcpServer.tool(
         // Limitar a quantidade de arquivos para análise
         const filesToAnalyze = files.slice(0, 10);
         
-        // Obter o conteúdo de cada arquivo
-        const fileContents: Record<string, string> = {};
-        
-        for (const file of filesToAnalyze) {
-          if (file.status !== "removed") {
-            try {
-              const content = await gitHubClient.getFileContent(
-                repoName,
-                file.filename,
-                prDetails.head.sha
-              );
-              
-              if (content) {
-                fileContents[file.filename] = content;
-              }
-            } catch (fileError: unknown) {
-              const errorMessage = fileError instanceof Error ? fileError.message : String(fileError);
-              console.warn(`Não foi possível obter o conteúdo de ${file.filename}: ${errorMessage}`);
-            }
-          }
-        }
-        
-        // Analisar o PR
+        // Analisar o PR usando diretamente os arquivos com diffs
         const analysis = await codeAnalyzer.analyzePullRequest(
           prDetails,
           filesToAnalyze,
-          fileContents,
+          {}, // Não precisamos mais obter o conteúdo completo dos arquivos
           'tudo'
         );
         
@@ -644,33 +589,11 @@ async function analyzePullRequest(repo: string, prNumber: number, focus: string)
   // Limitar a quantidade de arquivos para análise
   const filesToAnalyze = files.slice(0, 10);
   
-  // Obter o conteúdo de cada arquivo
-  const fileContents: Record<string, string> = {};
-  
-  for (const file of filesToAnalyze) {
-    if (file.status !== "removed") {
-      try {
-        const content = await gitHubClient.getFileContent(
-          repo,
-          file.filename,
-          prDetails.head.sha
-        );
-        
-        if (content) {
-          fileContents[file.filename] = content;
-        }
-      } catch (fileError: unknown) {
-        const errorMessage = fileError instanceof Error ? fileError.message : String(fileError);
-        console.warn(`Não foi possível obter o conteúdo de ${file.filename}: ${errorMessage}`);
-      }
-    }
-  }
-  
-  // Analisar o PR
+  // Analisar o PR usando diretamente os arquivos com diffs
   const analysis = await codeAnalyzer.analyzePullRequest(
     prDetails,
     filesToAnalyze,
-    fileContents,
+    {}, // Não precisamos mais obter o conteúdo completo dos arquivos
     focus
   );
   
